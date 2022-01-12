@@ -9,9 +9,10 @@
 		</div>
 
 		<form class="form" @submit.prevent="sendComment">
-			<textarea placeholder="Add a comment..." v-model="commentMessage">
-      dasddas
-      </textarea>
+			<textarea
+				placeholder="Add a comment..."
+				v-model="commentMessage"
+			></textarea>
 			<button class="btn btn-primary" type="submit">Send</button>
 		</form>
 	</div>
@@ -31,6 +32,20 @@ export default {
 		const errMessage = ref(null);
 
 		const currentUser = inject('currentUser');
+		const addComment = inject('addComment');
+
+		const getParentComment = async id => {
+			const commentSnap = await getDoc(doc(db, 'comments', id));
+
+			if (commentSnap.exist()) {
+				return commentSnap.id;
+			} else {
+				// const childSnap = await getDoc();
+			}
+
+			const comment = { id: commentSnap.id, ...commentSnap.data() };
+			console.log(commentSnap);
+		};
 
 		const sendComment = async () => {
 			error.value = false;
@@ -44,7 +59,7 @@ export default {
 
 			const newComment = {
 				content: commentMessage.value,
-				createdAt: new Timestamp(),
+				createdAt: Timestamp.now(),
 				score: 0,
 				user: {
 					image: {
@@ -53,20 +68,58 @@ export default {
 					},
 					username: currentUser.value.username,
 				},
-				replies: [],
 			};
+
+			if (props.replyingTo) {
+				console.log(`this is a reply to ${props.replyingTo.user.username}`);
+
+				// Add replyingTo prop to comment object
+				newComment.replyingTo = props.replyingTo.user.username;
+
+				// Remove replyingTo string in comment message
+				const usernameLength = props.replyingTo.user.username.length;
+				const startIndex = usernameLength + 3;
+				newComment.content = commentMessage.value.slice(startIndex);
+
+				// Find the first level comment
+				let fisrtCommentId;
+
+				fisrtCommentId = getParentComment(props.replyingTo.id);
+
+				try {
+					const commentRef = await addDoc(
+						collection(db, 'comments', fisrtCommentId, 'replies'),
+						newComment
+					);
+					if (commentRef.id) {
+						commentMessage.value = null;
+						addComment(commentRef.id);
+					}
+					console.log(commentRef);
+				} catch (err) {
+					console.log(err);
+				}
+
+				return;
+			}
 
 			try {
 				const docRef = await addDoc(collection(db, 'comments'), newComment);
-				console.log(docRef);
+				if (docRef.id) {
+					commentMessage.value = null;
+					addComment(docRef.id);
+				} else {
+					throw new Error('Failed add new comment');
+				}
 			} catch (err) {
 				console.log(err);
+				error.value = true;
+				errMessage.value = err;
 			}
 		};
 
 		onMounted(() => {
 			if (props.replyingTo) {
-				console.log(props.replyingTo);
 				commentMessage.value = `@${props.replyingTo.user.username}, `;
 			}
 		});
