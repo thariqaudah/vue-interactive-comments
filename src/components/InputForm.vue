@@ -1,14 +1,5 @@
 <template>
-	<div class="form-comment">
-		<div class="user-profile">
-			<img
-				class="avatar"
-				:src="require(`../assets/avatars/${currentUser.image.png}`)"
-				alt="Current user photo"
-			/>
-		</div>
-
-		<form class="form">
+  <form class="form">
 			<textarea
 				placeholder="Add a comment..."
 				v-model="commentMessage"
@@ -30,7 +21,6 @@
 				Send
 			</button>
 		</form>
-	</div>
 </template>
 
 <script>
@@ -151,48 +141,3 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.form-comment {
-	background-color: #fff;
-	display: flex;
-	align-items: flex-start;
-	gap: 16px;
-	border-radius: 9px;
-	padding: 24px;
-
-	.user-profile {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-
-		.avatar {
-			width: 50px;
-			height: 50px;
-		}
-	}
-
-	.form {
-		width: 100%;
-		display: flex;
-		align-items: flex-start;
-		gap: 16px;
-
-		textarea {
-			flex: 1;
-			background-color: none;
-			border: 1px solid #eaecf1;
-			font-size: 16px;
-			font-family: inherit;
-			color: #324152;
-			padding: 12px 16px;
-			min-height: 100px;
-			border-radius: 9px;
-			resize: none;
-
-			&:focus {
-				outline: none;
-				border-color: #324152;
-			}
-		}
-	}
-}
-</style>
